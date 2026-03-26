@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Dashboard | Digital Hoarding Punger</title>
+    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fb;
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #ffffff;
+            padding: 0 32px;
+            height: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon i {
+            font-size: 20px;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge.unverified {
+            background: #fef9c3;
+            color: #ca8a04;
+        }
+
+        .resend-link {
+            background: none;
+            border: none;
+            color: #4f46e5;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: #dc2626;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            border: 1px solid #fee2e2;
+        }
+
+        .logout-btn:hover {
+            background: #fef2f2;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: #e2e8f0;
+            margin: 24px 24px 0 24px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px 24px;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .stat-header i {
+            font-size: 26px;
+            color: #4f46e5;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            margin: 28px 24px 0 24px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        /* Panels */
+        .panel {
+            display: none;
+            padding: 24px;
+            padding-bottom: 100px;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Timeline Groups */
+        .timeline-group {
+            margin-bottom: 32px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .date-tag {
+            font-weight: 600;
+            font-size: 13px;
+            color: #4f46e5;
+        }
+
+        .batch-delete-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .batch-delete-btn:hover {
+            background: #fef2f2;
+        }
+
+        /* Gallery Grid */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+        }
+
+        .image-card {
+            position: relative;
+            aspect-ratio: 1;
+            background: #f1f5f9;
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Flagged Borders */
+        .image-card.flagged-blur { border: 3px solid #f59e0b; }
+        .image-card.flagged-meme { border: 3px solid #a855f7; }
+        .image-card.flagged-screenshot { border: 3px solid #3b82f6; }
+        .image-card.flagged-nsfw { border: 3px solid #ef4444; }
+        .image-card.processing { border: 3px solid #eab308; }
+
+        .category-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        .processing-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #eab308;
+            color: #422006;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            opacity: 0.4;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 56px;
+            height: 56px;
+            background: #4f46e5;
+            color: white;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+
+        .fab:hover {
+            transform: scale(1.05);
+            background: #4338ca;
+        }
+
+        .fab i {
+            font-size: 28px;
+        }
+
+        /* Upload Menu */
+        .upload-menu {
+            position: fixed;
+            bottom: 104px;
+            right: 32px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: none;
+            z-index: 1000;
+            min-width: 190px;
+        }
+
+        .upload-menu.show {
+            display: block;
+            animation: slideUp 0.2s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .upload-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: white;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .upload-option:hover {
+            background: #f8fafc;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90vw;
+            max-height: 85vh;
+            position: relative;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -44px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-actions {
+            position: absolute;
+            bottom: -68px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .modal-btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .modal-btn.primary {
+            background: white;
+            color: #0f172a;
+        }
+
+        .modal-btn.success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .modal-btn.danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Progress Panel */
+        .progress-container {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .progress-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .progress-item:last-child {
+            border-bottom: none;
+        }
+
+        .progress-label {
+            color: #475569;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .progress-value {
+            font-weight: 700;
+            font-size: 18px;
+            color: #0f172a;
+        }
+
+        .progress-value.primary {
+            color: #4f46e5;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            z-index: 1500;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            animation: fadeInOut 3s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .loading i {
+            font-size: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #file-input, #camera-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class='bx bx-photo-album'></i>
+            </div>
+            <span class="logo-text">Digital Hoarding Punger</span>
+        </div>
+        <div class="user-info">
+            <span class="user-name">{{ user_name }}</span>
+            {% if not email_verified %}
+                <span class="badge unverified">Unverified</span>
+                <button class="resend-link" onclick="resendVerification()">Resend</button>
+            {% endif %}
+            <a href="/logout" class="logout-btn">
+                <i class='bx bx-log-out'></i>
+                <span>Exit</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <i class='bx bx-folder'></i>
+            </div>
+            <div class="stat-value" id="stat-sessions">0</div>
+            <div class="stat-label">Cleanup Sessions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <i class='bx bx-trash'></i>
+            </div>
+            <div class="stat-value" id="stat-cleaned">0</div>
+            <div class="stat-label">Images Cleaned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <i class='bx bx-chip'></i>
+            </div>
+            <div class="stat-value" id="stat-analyzed">0</div>
+            <div class="stat-label">Images Analyzed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <i class='bx bx-loader-alt'></i>
+            </div>
+            <div class="stat-value" id="stat-processing">0</div>
+            <div class="stat-label">Processing</div>
+        </div>
+    </div>
+
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="gallery">Gallery</button>
+        <button class="tab-btn" data-tab="cleanup">Clean Up</button>
+        <button class="tab-btn" data-tab="progress">Progress</button>
+    </div>
+
+    <div class="panel active" id="gallery-panel">
+        <div id="gallery-container"></div>
+    </div>
+
+    <div class="panel" id="cleanup-panel">
+        <div id="cleanup-container"></div>
+    </div>
+
+    <div class="panel" id="progress-panel">
+        <div class="progress-container">
+            <div class="progress-item">
+                <span class="progress-label">Total Images Uploaded</span>
+                <span class="progress-value" id="total-uploaded">0</span>
+            </div>
+            <div class="progress-item">
+                <span class="progress-label">Flagged as Blur</span>
+                <span class="progress-value" id="total-blur">0</span>
+            </div>
+            <div class="progress-item">
+                <span class="progress-label">Flagged as Meme</span>
+                <span class="progress-value" id="total-meme">0</span>
+            </div>
+            <div class="progress-item">
+                <span class="progress-label">Flagged as Screenshot</span>
+                <span class="progress-value" id="total-screenshot">0</span>
+            </div>
+            <div class="progress-item">
+                <span class="progress-label">Flagged as NSFW</span>
+                <span class="progress-value" id="total-nsfw">0</span>
+            </div>
+            <div class="progress-item">
+                <span class="progress-label">Images Cleaned</span>
+                <span class="progress-value primary" id="progress-cleaned">0</span>
+            </div>
+            <div class="progress-item">
+                <span class="progress-label">Images Recovered</span>
+                <span class="progress-value" id="total-recovered">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="fab" id="fab">
+        <i class='bx bx-plus'></i>
+    </div>
+
+    <div class="upload-menu" id="upload-menu">
+        <button class="upload-option" id="upload-folder">
+            <i class='bx bx-folder-open'></i>
+            <span>From Gallery</span>
+        </button>
+        <button class="upload-option" id="upload-camera">
+            <i class='bx bx-camera'></i>
+            <span>Take Photo</span>
+        </button>
+    </div>
+
+    <input type="file" id="file-input" multiple accept="image/jpeg,image/jpg,image/png,image/webp">
+    <input type="file" id="camera-input" accept="image/jpeg,image/jpg,image/png" capture="environment">
+
+    <div class="modal" id="image-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <img id="modal-image" src="" alt="">
+            <div class="modal-actions" id="modal-actions"></div>
+        </div>
+    </div>
+
+    <script>
+        const userId = "{{ user_id }}";
+        const userEmail = "{{ user_email }}";
+
+        let allImages = [];
+        let currentImage = null;
+        let currentPanel = 'gallery';
+        let processingQueue = new Set();
+        let pollingInterval = null;
+
+        const galleryContainer = document.getElementById('gallery-container');
+        const cleanupContainer = document.getElementById('cleanup-container');
+        const fab = document.getElementById('fab');
+        const uploadMenu = document.getElementById('upload-menu');
+        const fileInput = document.getElementById('file-input');
+        const cameraInput = document.getElementById('camera-input');
+        const modal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalActions = document.getElementById('modal-actions');
+
+        // Function to update top stats
+        function updateTopStats() {
+            const totalImages = allImages.length;
+            const cleanedImages = allImages.filter(img => img.user_approved_deletion === true).length;
+            const analyzedImages = allImages.filter(img => img.predicted_category !== null && img.predicted_category !== undefined).length;
+            const sessionsCount = Math.ceil(totalImages / 5); // Simulate cleanup sessions based on images
+            
+            document.getElementById('stat-sessions').textContent = sessionsCount;
+            document.getElementById('stat-cleaned').textContent = cleanedImages;
+            document.getElementById('stat-analyzed').textContent = analyzedImages;
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/user/stats');
+                const data = await response.json();
+                if (data.success && data.stats) {
+                    // If API returns data, use it, otherwise use calculated values
+                    if (data.stats.cleanup_sessions > 0) {
+                        document.getElementById('stat-sessions').textContent = data.stats.cleanup_sessions;
+                    }
+                    if (data.stats.images_cleaned > 0) {
+                        document.getElementById('stat-cleaned').textContent = data.stats.images_cleaned;
+                    }
+                    if (data.stats.images_analyzed > 0) {
+                        document.getElementById('stat-analyzed').textContent = data.stats.images_analyzed;
+                    }
+                }
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        async function loadImages() {
+            try {
+                const response = await fetch('/api/get-user-images');
+                const data = await response.json();
+                if (data.success && data.images) {
+                    allImages = data.images;
+                    renderGallery();
+                    renderCleanup();
+                    updateProgressStats();
+                    updateTopStats(); // Update top stats with real data
+                }
+            } catch (error) {
+                console.error('Load images error:', error);
+            }
+        }
+
+        function updateProgressStats() {
+            const flaggedBlur = allImages.filter(img => img.predicted_category === 'blur' && !img.user_recovered && !img.user_approved_deletion).length;
+            const flaggedMeme = allImages.filter(img => img.predicted_category === 'meme' && !img.user_recovered && !img.user_approved_deletion).length;
+            const flaggedScreenshot = allImages.filter(img => img.predicted_category === 'screenshot' && !img.user_recovered && !img.user_approved_deletion).length;
+            const flaggedNsfw = allImages.filter(img => img.predicted_category === 'nsfw' && !img.user_recovered && !img.user_approved_deletion).length;
+            const cleaned = allImages.filter(img => img.user_approved_deletion === true).length;
+            const recovered = allImages.filter(img => img.user_recovered === true).length;
+
+            document.getElementById('total-uploaded').textContent = allImages.length;
+            document.getElementById('total-blur').textContent = flaggedBlur;
+            document.getElementById('total-meme').textContent = flaggedMeme;
+            document.getElementById('total-screenshot').textContent = flaggedScreenshot;
+            document.getElementById('total-nsfw').textContent = flaggedNsfw;
+            document.getElementById('progress-cleaned').textContent = cleaned;
+            document.getElementById('total-recovered').textContent = recovered;
+        }
+
+        function groupByDate(images) {
+            const groups = {};
+            images.forEach(img => {
+                const date = img.upload_date ? img.upload_date.split('T')[0] : new Date().toISOString().split('T')[0];
+                if (!groups[date]) groups[date] = [];
+                groups[date].push(img);
+            });
+            return groups;
+        }
+
+        function formatDate(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch {
+                return dateStr;
+            }
+        }
+
+        function renderGallery() {
+            const normalImages = allImages.filter(img => !img.user_approved_deletion);
+            const groups = groupByDate(normalImages);
+            
+            if (normalImages.length === 0) {
+                galleryContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class='bx bx-photo-album'></i>
+                        <p>No photos yet</p>
+                        <p style="font-size: 12px; margin-top: 8px;">Tap the + button to add photos</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            for (const [date, images] of Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]))) {
+                html += `<div class="timeline-group">`;
+                html += `<div class="timeline-header"><span class="date-tag">${formatDate(date)}</span></div>`;
+                html += `<div class="gallery-grid">`;
+                
+                images.forEach(img => {
+                    let flagClass = '';
+                    let badge = '';
+                    const isProcessing = processingQueue.has(img.id);
+                    
+                    if (isProcessing) {
+                        flagClass = 'processing';
+                        badge = '<div class="processing-badge"><i class="bx bx-loader-alt bx-spin"></i> AI Scan</div>';
+                    } else if (img.predicted_category === 'blur' && !img.user_recovered) {
+                        flagClass = 'flagged-blur';
+                        badge = '<span class="category-badge">Blur</span>';
+                    } else if (img.predicted_category === 'meme' && !img.user_recovered) {
+                        flagClass = 'flagged-meme';
+                        badge = '<span class="category-badge">Meme</span>';
+                    } else if (img.predicted_category === 'screenshot' && !img.user_recovered) {
+                        flagClass = 'flagged-screenshot';
+                        badge = '<span class="category-badge">Screenshot</span>';
+                    } else if (img.predicted_category === 'nsfw' && !img.user_recovered) {
+                        flagClass = 'flagged-nsfw';
+                        badge = '<span class="category-badge">NSFW</span>';
+                    }
+                    
+                    html += `
+                        <div class="image-card ${flagClass}" onclick="openImage('${img.id}')">
+                            <img src="${img.thumbnail || img.url}" alt="Photo">
+                            ${badge}
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+            galleryContainer.innerHTML = html;
+        }
+
+        function renderCleanup() {
+            const flaggedImages = allImages.filter(img => 
+                (img.predicted_category === 'blur' || img.predicted_category === 'meme' || 
+                 img.predicted_category === 'screenshot' || img.predicted_category === 'nsfw') && 
+                !img.user_recovered && !img.user_approved_deletion
+            );
+            
+            if (flaggedImages.length === 0) {
+                cleanupContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class='bx bx-check-shield'></i>
+                        <p>All clean</p>
+                        <p style="font-size: 12px; margin-top: 8px;">No flagged images to review</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const nsfw = flaggedImages.filter(i => i.predicted_category === 'nsfw');
+            const blur = flaggedImages.filter(i => i.predicted_category === 'blur');
+            const meme = flaggedImages.filter(i => i.predicted_category === 'meme');
+            const screenshot = flaggedImages.filter(i => i.predicted_category === 'screenshot');
+            
+            let html = '';
+            if (nsfw.length) html += renderCleanupSection(nsfw, 'NSFW Content', 'nsfw');
+            if (blur.length) html += renderCleanupSection(blur, 'Blurred Images', 'blur');
+            if (meme.length) html += renderCleanupSection(meme, 'Memes', 'meme');
+            if (screenshot.length) html += renderCleanupSection(screenshot, 'Screenshots', 'screenshot');
+            
+            cleanupContainer.innerHTML = html;
+        }
+
+        function renderCleanupSection(images, title, categoryKey) {
+            const groups = groupByDate(images);
+            let html = `<div class="timeline-group">`;
+            html += `<div class="timeline-header">`;
+            html += `<div><span class="date-tag">${title}</span><span style="margin-left: 8px; font-size: 12px; color: #64748b;">${images.length} items</span></div>`;
+            html += `<button class="batch-delete-btn" onclick="batchDelete('${categoryKey}')"><i class='bx bx-trash'></i> Delete All</button>`;
+            html += `</div>`;
+            
+            for (const [date, imgs] of Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]))) {
+                html += `<div class="timeline-header" style="margin-top: 12px;"><span class="date-tag" style="font-size: 11px; color: #64748b;">${formatDate(date)}</span></div>`;
+                html += `<div class="gallery-grid">`;
+                imgs.forEach(img => {
+                    html += `
+                        <div class="image-card" onclick="openImage('${img.id}', true)">
+                            <img src="${img.thumbnail || img.url}" alt="Photo">
+                            <span class="category-badge">${img.predicted_category}</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        window.openImage = function(imageId, isCleanup = false) {
+            currentImage = allImages.find(img => img.id === imageId);
+            if (!currentImage) return;
+            modalImage.src = currentImage.url;
+            modalActions.innerHTML = isCleanup ? 
+                `<button class="modal-btn success" onclick="recoverImage()"><i class='bx bx-refresh'></i> Recover</button>
+                 <button class="modal-btn danger" onclick="deleteImage()"><i class='bx bx-trash'></i> Delete</button>` :
+                `<button class="modal-btn primary" onclick="downloadImage()"><i class='bx bx-download'></i> Download</button>
+                 <button class="modal-btn danger" onclick="deleteImage()"><i class='bx bx-trash'></i> Delete</button>`;
+            modal.classList.add('show');
+        };
+
+        window.closeModal = function() {
+            modal.classList.remove('show');
+            currentImage = null;
+        };
+
+        window.deleteImage = async function() {
+            if (!currentImage) return;
+            if (!confirm('Delete this image permanently?')) return;
+            try {
+                const response = await fetch('/api/image/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_id: currentImage.id })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    closeModal();
+                    await loadImages();
+                    await loadStats();
+                    showToast('Image deleted');
+                } else {
+                    alert('Delete failed');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Failed to delete');
+            }
+        };
+
+        window.recoverImage = async function() {
+            if (!currentImage) return;
+            try {
+                const response = await fetch('/api/image/recover', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_id: currentImage.id })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    closeModal();
+                    await loadImages();
+                    showToast('Image recovered');
+                } else {
+                    alert('Recover failed');
+                }
+            } catch (error) {
+                console.error('Recover error:', error);
+                alert('Failed to recover');
+            }
+        };
+
+        window.downloadImage = function() {
+            if (currentImage) {
+                const link = document.createElement('a');
+                link.href = currentImage.url;
+                link.download = currentImage.filename || 'image.jpg';
+                link.click();
+                showToast('Download started');
+            }
+        };
+
+        window.batchDelete = async function(categoryKey) {
+            const count = allImages.filter(i => i.predicted_category === categoryKey && !i.user_recovered && !i.user_approved_deletion).length;
+            if (!confirm(`Delete all ${count} images in this category? This cannot be undone.`)) return;
+            try {
+                const response = await fetch('/api/batch-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category: categoryKey })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await loadImages();
+                    await loadStats();
+                    showToast(`Deleted ${data.deleted_count} images`);
+                } else {
+                    alert('Batch delete failed');
+                }
+            } catch (error) {
+                console.error('Batch delete error:', error);
+                alert('Failed to delete');
+            }
+        };
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        window.resendVerification = async function() {
+            try {
+                const response = await fetch('/api/resend-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: userEmail })
+                });
+                const data = await response.json();
+                alert(data.success ? 'Verification email sent!' : 'Failed to send');
+            } catch (error) {
+                alert('Error sending verification');
+            }
+        };
+
+        function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(() => {
+                loadImages();
+                loadStats();
+            }, 5000);
+        }
+
+        async function uploadImages(files) {
+            const formData = new FormData();
+            files.forEach(file => formData.append('images', file));
+            
+            galleryContainer.innerHTML = '<div class="loading"><i class="bx bx-loader-alt bx-spin"></i> Uploading...</div>';
+            
+            try {
+                const response = await fetch('/api/upload-images', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (data.success) {
+                    await loadImages();
+                    await loadStats();
+                    showToast(`${data.images.length} images uploaded`);
+                    for (const image of data.images) {
+                        processingQueue.add(image.id);
+                        startBackgroundDetection(image.id);
+                    }
+                    updateProcessingCount();
+                } else {
+                    alert('Upload failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Failed to upload images');
+            }
+        }
+
+        async function startBackgroundDetection(imageId) {
+            try {
+                await fetch('/api/detect-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_id: imageId })
+                });
+                setTimeout(async () => {
+                    await loadImages();
+                    processingQueue.delete(imageId);
+                    updateProcessingCount();
+                    if (currentPanel === 'gallery') renderGallery();
+                    if (currentPanel === 'cleanup') renderCleanup();
+                }, 1500);
+            } catch (error) {
+                console.error('Detection error:', error);
+                processingQueue.delete(imageId);
+                updateProcessingCount();
+            }
+        }
+
+        function updateProcessingCount() {
+            const elem = document.getElementById('stat-processing');
+            if (elem) elem.textContent = processingQueue.size;
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.dataset.tab;
+                currentPanel = targetTab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${targetTab}-panel`).classList.add('active');
+                if (targetTab === 'gallery') renderGallery();
+                else if (targetTab === 'cleanup') renderCleanup();
+            });
+        });
+
+        fab.addEventListener('click', (e) => {
+            e.stopPropagation();
+            uploadMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!uploadMenu.contains(e.target) && !fab.contains(e.target)) {
+                uploadMenu.classList.remove('show');
+            }
+        });
+
+        document.getElementById('upload-folder').addEventListener('click', () => {
+            fileInput.click();
+            uploadMenu.classList.remove('show');
+        });
+
+        document.getElementById('upload-camera').addEventListener('click', () => {
+            cameraInput.click();
+            uploadMenu.classList.remove('show');
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length) await uploadImages(files);
+            fileInput.value = '';
+        });
+
+        cameraInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length) await uploadImages(files);
+            cameraInput.value = '';
+        });
+
+        loadStats();
+        loadImages();
+        startPolling();
+    </script>
+</body>
+</html>
