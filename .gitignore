@@ -1,55 +1,12 @@
-# =========================
 # Python
-# =========================
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
+*.pyc
 
-# Virtual Environment
+# Virtual env
 .venv/
-venv/
-env/
 
-# =========================
-# Environment Variables
-# =========================
+# Secrets
 .env
 
-# =========================
-# VS Code
-# =========================
-.vscode/
-
-# =========================
-# Dataset (heavy + local)
-# =========================
-
-
-# =========================
-# Models (large files)
-# =========================
-
-
-# =========================
-# Uploads / Runtime data
-# =========================
-
-# =========================
-# Logs / temp
-# =========================
-*.log
-tmp/
-temp/
-
-# =========================
-# OS files
-# =========================
-.DS_Store
-Thumbs.db
-
-# =========================
-# Misc
-# =========================
-*.sqlite3
-*.db
+# Optional (keep if you want to exclude uploads)
+# static/uploads/
