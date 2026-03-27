@@ -1,20 +1,22 @@
+#Use This Template as the .env refrence < then run the code  , make sure the file name is .env and it will be in the root folder
+
 # Supabase Configuration
-SUPABASE_URL=https://jpozmtnvvwgbzmnitoeh.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwb3ptdG52dndnYnptbml0b2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjI2MDUsImV4cCI6MjA4OTkzODYwNX0.m9NJiRMrB1acpbihYGYzOK4G4o0WR0l8LeeuETkyzjQ
-SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwb3ptdG52dndnYnptbml0b2VoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM2MjYwNSwiZXhwIjoyMDg5OTM4NjA1fQ.V8-02YxRQumThiZXTWUpfVpHPo_d6b_gjh_LWHL2U7c
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_KEY=
 
 # Flask
-SECRET_KEY=sb_secret_JrELlP1VLRA8GYPDPjq0aQ_KYEMGs8c
+SECRET_KEY=
 
 # Brevo SMTP Configuration
-SMTP_HOST=smtp-relay.brevo.com
+SMTP_HOST=
 SMTP_PORT=587
-SMTP_USER=a6087a001@smtp-brevo.com
-SMTP_PASSWORD=xsmtpsib-fbac9c780a8bf64edf1cbba25f60ce2c554603027dc53d7e2f6be0e1be06806e-IxkNydtwKfyTbpQc
-SMTP_FROM_EMAIL=madhu19yo@gmail.com
-SMTP_FROM_NAME=Digital Hoarding Punger
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM_EMAIL=
+SMTP_FROM_NAME=
 
 
-CLOUDINARY_CLOUD_NAME=dudynhlox
-CLOUDINARY_API_KEY=828166542466296
-CLOUDINARY_API_SECRET=DVwstxArkiHwV-rnT828htymZOs
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
