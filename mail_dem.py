@@ -10,7 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
 # Email Configuration (from your .env)
-#here some data will be come and its in te whatsapp 
+#here some data will be come and its in te w
 
 # Recipient email
 DEMO_EMAIL = "longlivequeen25@gmail.com"

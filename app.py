@@ -13,6 +13,12 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 import io
 import requests
+import pickle
+import cv2
+import numpy as np
+import threading
+import time
+from detection_pytorch import analyze_image
 
 load_dotenv()
 
@@ -47,6 +53,182 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 THUMBNAIL_SIZE = (150, 150)
 DISPLAY_SIZE = (400, 400)
 QUALITY = 85
+
+# Load the trained AI Model
+class AIDetector:
+    def __init__(self):
+        self.model = None
+        self.model_loaded = False
+        self.load_model()
+        
+    def load_model(self):
+        """Load the trained Random Forest model"""
+        try:
+            model_path = os.path.join(os.path.dirname(__file__), 'image_classifier.pkl')
+            if os.path.exists(model_path):
+                with open(model_path, 'rb') as f:
+                    self.model = pickle.load(f)
+                self.model_loaded = True
+                print("✅ AI Model loaded successfully from image_classifier.pkl")
+            else:
+                print("⚠️ Model file not found. Using fallback detection.")
+                self.model_loaded = False
+        except Exception as e:
+            print(f"❌ Error loading model: {e}")
+            self.model_loaded = False
+    
+    def extract_features(self, img):
+        """Extract features for prediction (must match training features)"""
+        # Resize to standard size
+        img = cv2.resize(img, (128, 128))
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        
+        # Feature 1: Blur score (Laplacian variance)
+        blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()
+        
+        # Feature 2: Edge density
+        edges = cv2.Canny(gray, 50, 150)
+        edge_density = np.sum(edges > 0) / edges.size if edges.size > 0 else 0
+        
+        # Feature 3: Texture (standard deviation)
+        texture = np.std(gray) / 255
+        
+        # Features 4-19: Color histograms (16 bins each for R,G,B)
+        hist_r = cv2.calcHist([img], [0], None, [16], [0, 256]).flatten()
+        hist_g = cv2.calcHist([img], [1], None, [16], [0, 256]).flatten()
+        hist_b = cv2.calcHist([img], [2], None, [16], [0, 256]).flatten()
+        
+        # Features 20-21: Top/Bottom edge densities (for meme detection)
+        h, w = img.shape[:2]
+        top_region = edges[0:int(h*0.25), :]
+        bottom_region = edges[int(h*0.75):h, :]
+        top_density = np.sum(top_region > 0) / top_region.size if top_region.size > 0 else 0
+        bottom_density = np.sum(bottom_region > 0) / bottom_region.size if bottom_region.size > 0 else 0
+        
+        # Feature 22: Meme feature (difference between top and bottom density)
+        meme_feature = abs(top_density - bottom_density)
+        
+        # Feature 23: Aspect ratio
+        aspect = w / h
+        
+        # Combine all features
+        features = np.concatenate([
+            [blur_score / 1000],  # Normalize blur score
+            [edge_density],
+            [texture],
+            hist_r,
+            hist_g,
+            hist_b,
+            [top_density],
+            [bottom_density],
+            [meme_feature],
+            [aspect]
+        ])
+        
+        return features.reshape(1, -1)
+    
+    def detect_intentional_blur(self, img):
+        """Check if blur is intentional (portrait mode)"""
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(50, 50))
+        
+        if len(faces) > 0:
+            for (x, y, w, h) in faces:
+                face_region = gray[y:y+h, x:x+w]
+                if len(face_region) > 0:
+                    face_blur = cv2.Laplacian(face_region, cv2.CV_64F).var()
+                    # If face is sharp but overall image is blurry, it's intentional
+                    if face_blur > 100:
+                        return True, "Portrait mode - face is sharp, background blurred"
+        return False, "Accidental blur - no clear subject"
+    
+    def detect(self, image_bytes):
+        """Main detection function"""
+        try:
+            # Load image from bytes
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            
+            if img is None:
+                return 'normal', 0.5, 'Failed to process image'
+            
+            # Check if model is loaded
+            if self.model_loaded and self.model:
+                # Extract features
+                features = self.extract_features(img)
+                
+                # Get prediction
+                prediction = self.model.predict(features)[0]
+                
+                # Get confidence
+                if hasattr(self.model, 'predict_proba'):
+                    probs = self.model.predict_proba(features)[0]
+                    classes = self.model.classes_
+                    idx = list(classes).index(prediction)
+                    confidence = probs[idx]
+                else:
+                    confidence = 0.75
+                
+                # Map prediction to category
+                category_map = {
+                    'blurred': 'blur',
+                    'memes': 'meme',
+                    'screenshots': 'screenshot',
+                    'normal': 'normal'
+                }
+                
+                category = category_map.get(prediction, 'normal')
+                reason = f'AI detected as {prediction} with {confidence:.1%} confidence'
+                
+                # Special check for blur - detect if intentional
+                if category == 'blur':
+                    is_intentional, intentional_reason = self.detect_intentional_blur(img)
+                    if is_intentional:
+                        return 'normal', 0.85, intentional_reason
+                
+                return category, confidence, reason
+            else:
+                # Fallback detection using OpenCV only
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                
+                # Blur detection
+                blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()
+                if blur_score < 100:
+                    # Check if intentional blur
+                    is_intentional, _ = self.detect_intentional_blur(img)
+                    if is_intentional:
+                        return 'normal', 0.8, 'Portrait mode - keep'
+                    return 'blur', 0.7, f'Blurry image (score: {blur_score:.0f})'
+                
+                # Screenshot detection by aspect ratio
+                h, w = img.shape[:2]
+                aspect = w / h
+                if abs(aspect - 16/9) < 0.1 or abs(aspect - 9/16) < 0.1:
+                    # Check top region for UI elements
+                    top = img[0:int(h*0.08), :]
+                    gray_top = cv2.cvtColor(top, cv2.COLOR_BGR2GRAY)
+                    edges_top = cv2.Canny(gray_top, 50, 150)
+                    edge_density = np.sum(edges_top > 0) / edges_top.size
+                    if edge_density > 0.05:
+                        return 'screenshot', 0.65, 'UI elements detected'
+                
+                # Meme detection
+                top_edges = edges[0:int(h*0.25), :]
+                bottom_edges = edges[int(h*0.75):h, :]
+                top_density = np.sum(top_edges > 0) / top_edges.size if top_edges.size > 0 else 0
+                bottom_density = np.sum(bottom_edges > 0) / bottom_edges.size if bottom_edges.size > 0 else 0
+                if top_density > 0.03 and bottom_density > 0.03:
+                    return 'meme', 0.6, 'Text pattern detected'
+                
+                return 'normal', 0.8, 'Good quality image'
+                
+        except Exception as e:
+            print(f"Detection error: {e}")
+            return 'normal', 0.5, 'Detection failed'
+
+# Initialize detector
+detector = AIDetector()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -142,15 +324,18 @@ def ensure_user_exists(user_id, email=None, name=None):
         
         if not user_check.data:
             if not email:
-                auth_user = supabase_auth.auth.admin.get_user_by_id(user_id)
-                if auth_user:
-                    email = auth_user.email
-                    name = auth_user.user_metadata.get('full_name', email.split('@')[0])
+                try:
+                    auth_user = supabase_auth.auth.admin.get_user_by_id(user_id)
+                    if auth_user:
+                        email = auth_user.email
+                        name = auth_user.user_metadata.get('full_name', email.split('@')[0])
+                except:
+                    pass
             
             user_data = {
                 "id": user_id,
-                "email": email,
-                "full_name": name or email.split('@')[0],
+                "email": email or f"user_{user_id}@temp.com",
+                "full_name": name or "User",
                 "created_at": datetime.utcnow().isoformat(),
                 "updated_at": datetime.utcnow().isoformat()
             }
@@ -257,9 +442,6 @@ def send_monthly_reports():
         print(f"Monthly report error: {e}")
 
 def start_scheduler():
-    import threading
-    import time
-    
     def run_scheduler():
         while True:
             try:
@@ -624,7 +806,7 @@ def start_cleanup_session():
         print(f"Error creating session: {e}")
         return jsonify({"error": str(e)}), 500
 
-# ---------------- UPLOAD IMAGES TO CLOUDINARY (FIXED - NO THUMBNAIL_PATH) ----------------
+# ---------------- UPLOAD IMAGES TO CLOUDINARY ----------------
 @app.route('/api/upload-images', methods=['POST'])
 @require_auth
 def upload_images():
@@ -657,9 +839,6 @@ def upload_images():
                 # RESIZE IMAGE FOR GALLERY
                 resized_bytes = resize_image_for_gallery(file_bytes, DISPLAY_SIZE)
                 
-                # Create thumbnail bytes (for frontend)
-                thumbnail_bytes = resize_thumbnail(file_bytes, THUMBNAIL_SIZE)
-                
                 # Upload resized image to Cloudinary
                 upload_result = cloudinary.uploader.upload(
                     resized_bytes,
@@ -689,7 +868,7 @@ def upload_images():
                     quality="auto"
                 )[0]
                 
-                # Store in database WITHOUT thumbnail_path
+                # Store in database
                 image_data = {
                     "user_id": user_id,
                     "original_filename": original_filename,
@@ -747,7 +926,6 @@ def get_user_images():
         images = []
         for item in result.data:
             if item['storage_path']:
-                # Generate optimized URLs
                 display_url = cloudinary.utils.cloudinary_url(
                     item['storage_path'],
                     width=400,
@@ -913,7 +1091,7 @@ def batch_delete():
         print(f"Batch delete error: {e}")
         return jsonify({"error": str(e)}), 500
 
-# ---------------- AI DETECTION ----------------
+# ---------------- AI DETECTION (NEW PYTORCH DETECTOR) ----------------
 @app.route('/api/detect-image', methods=['POST'])
 @require_auth
 def detect_image():
@@ -925,6 +1103,7 @@ def detect_image():
         if not image_id:
             return jsonify({"error": "Image ID required"}), 400
         
+        # Get image details
         img_result = supabase_db.table("cleanup_items") \
             .select("storage_path") \
             .eq("id", image_id) \
@@ -936,21 +1115,34 @@ def detect_image():
         
         storage_path = img_result.data[0]['storage_path']
         
-        # Simple detection (replace with your ML model later)
-        import random
-        categories = ['normal', 'blur', 'meme', 'screenshot']
-        predicted = random.choice(categories)
+        # Download image from Cloudinary
+        image_url = cloudinary.utils.cloudinary_url(
+            storage_path,
+            quality="auto",
+            fetch_format="auto"
+        )[0]
         
-        if predicted != 'normal':
+        # Download image bytes
+        response = requests.get(image_url)
+        if response.status_code != 200:
+            return jsonify({"error": "Failed to download image"}), 500
+        
+        # Run professional detection
+        category, confidence, reasoning = analyze_image(response.content)
+        
+        # Update database
+        if category != 'normal':
             update_data = {
-                "predicted_category": predicted,
-                "confidence_score": random.uniform(0.7, 0.95),
+                "predicted_category": category,
+                "confidence_score": confidence,
+                "reasoning": reasoning,
                 "recommended_for_deletion": True
             }
         else:
             update_data = {
                 "predicted_category": None,
                 "confidence_score": None,
+                "reasoning": reasoning,
                 "recommended_for_deletion": False
             }
         
@@ -962,12 +1154,15 @@ def detect_image():
         
         return jsonify({
             "success": True,
-            "category": predicted,
-            "message": "Detection complete"
+            "category": category,
+            "confidence": confidence,
+            "reasoning": reasoning
         }), 200
         
     except Exception as e:
         print(f"Detection error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ---------------- ERROR HANDLERS ----------------
