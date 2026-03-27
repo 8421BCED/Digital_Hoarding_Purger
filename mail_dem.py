@@ -10,7 +10,13 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
 # Email Configuration (from your .env)
-#here some data will be come and its in te w
+SMTP_HOST = ""
+SMTP_PORT = 587
+SMTP_USER = ""
+SMTP_PASSWORD = ""
+SMTP_FROM_EMAIL = ""
+SMTP_FROM_NAME = ""
+
 
 # Recipient email
 DEMO_EMAIL = "longlivequeen25@gmail.com"
